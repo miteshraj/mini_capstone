@@ -1,5 +1,7 @@
 class ProductsController < ApplicationController
 	
+	before_action :authenticate_admin, except: [:index, :show]
+
 	def all_products
 		products = Product.all
 
@@ -14,7 +16,14 @@ class ProductsController < ApplicationController
 	end
 
 	def index 
-		products = Product.all 
+		products = Product.all.order(title: :desc)
+
+		search_term = params[:search]
+
+		if search_term
+			products = Product.all.order(title: :desc).where("title LIKE ?", "%#{search_term}%") # % - searches for % 
+		end
+
 		render json: product.as_json 
 	end
 
@@ -25,27 +34,36 @@ class ProductsController < ApplicationController
 
 
 	def create
+		if current_user and current_user.admin
 		product = Product.new(
 			title: params[:title],
 			price: params[:price],
-			description: params[:description]
+			image_url: params[:image_url]
 			)
-		product.save
-		render json: product.as_json
+		if product.save
+			render json: product.as_json
+		else 
+			render json: {product.errors.full_messages, status: :unprocessable_entity}
+		end
+
 	end
 
 
 	def update
+		if current_user and current_user.admin
 		product = Product.find_by(id: params[:id])
-		product.update(
-			title: params[:title],
-			price: params[:price]
-			)
+		product.title = params[:title] || product.title
+		product.description = params[:description] || product.description
+		product.price = params[:price] || product.price
+		product.image_url = params[:image_url] || product.image_url
+		product.save
+
 		render json: product.as_json
 	end
 
 
 	def destroy 
+		if current_user and current_user.admin 
 		product = Product.find_by(id: params[:id])
 		product.destroy 
 		render json: {message: "You have successfully destoryed this product!"}
