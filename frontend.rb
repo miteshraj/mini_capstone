@@ -12,6 +12,7 @@ puts "[4] To Sign up!"
 puts "[6] To login!"
 puts "[7] To create an order"
 puts "[8] To show all products in a category"
+puts "[9] To add an item to your cart"
 
 input = gets.chomp 
 
@@ -44,7 +45,7 @@ elsif input =="7"
 	order_params[:product_id] = gets.chomp
 
 	puts "Enter the quantity: "
-	order_params[:quantity]
+	order_params[:quantity] = gets.chomp
 
 elsif input == "8"
 	puts "Please enter the category ID: "
@@ -53,6 +54,20 @@ elsif input == "8"
 	products = response.body
 	puts JSON.pretty_generate(products)
 
+elsif input == "9"
+	cart_params = {}
+	puts "Enter the product that you would like
+	to add to your cart: "
+	cart_params[:product_id] = gets.chomp
+	puts "Enter the quantity that you would like to 
+	add to your cart: "
+	cart_params[:quantity] = gets.chomp
+	response = Unirest.post("http://localhost:3000/carted_products", 
+		parameters: cart_params)
+	cart_data = response.body
+	puts JSON.pretty_generate(cart_data)
+
+    
 	
 	
 
